@@ -8,7 +8,9 @@ package-lock.json
 
 # API Keys (keep local, don't commit)
 API.txt
-api-config.js
+# Note: api-config.js is NOT ignored - it needs to be in the repo for GitHub Pages
+# If you want to keep it local only, uncomment the line below:
+# api-config.js
 # Note: api-config.example.js is the template - users copy it to api-config.js
 
 # IDE
