@@ -17,13 +17,25 @@ A streamlined web application for NFL analytics with automatic API key loading a
 
 ## Quick Start
 
-### 1. API Keys Already Configured
+### 1. Set Up API Keys (Required)
 
-The app automatically loads API keys from `api-config.js`. Your keys are already set up!
+**For Local Use:**
+- Copy `api-config.example.js` to `api-config.js`
+- Edit `api-config.js` and add your API keys
+- See `SETUP_API_KEYS.md` for detailed instructions
+
+**For GitHub Pages:**
+- After deployment, edit `api-config.js` directly on GitHub
+- Or add it manually after cloning the repository
 
 ### 2. Open the App
 
-Simply open `index.html` in your browser, or deploy to GitHub Pages.
+**Local:**
+- Simply open `index.html` in your browser
+
+**GitHub Pages:**
+- Visit: https://randylitton21.github.io/Fanlytical
+- (After enabling GitHub Pages - see below)
 
 ### 3. Start Querying
 
@@ -35,17 +47,41 @@ Type your NFL question and click "Send Query" or press Enter.
 - "What are the injury reports for the Seahawks?"
 - "Show me this week's betting odds"
 
-## Deployment to GitHub Pages
+## Deployment Status
 
-### Quick Deploy (Recommended)
+✅ **Already Deployed!**
 
-See **[DEPLOY.md](DEPLOY.md)** for step-by-step instructions.
+Your app has been deployed to: https://github.com/randylitton21/Fanlytical
 
-**Quick Steps:**
-1. Create a GitHub repository (public)
-2. Run `deploy.bat` (Windows) or `./deploy.sh` (Mac/Linux)
-3. Enable GitHub Pages in repository Settings → Pages
-4. Your app is live at `https://YOUR-USERNAME.github.io/nfl-agent-web`
+### Enable GitHub Pages
+
+1. Go to: https://github.com/randylitton21/Fanlytical/settings/pages
+2. Under **Source**:
+   - Branch: Select **`main`**
+   - Folder: Select **`/ (root)`**
+3. Click **Save**
+
+Your app will be live at:
+```
+https://randylitton21.github.io/Fanlytical
+```
+
+**Note:** It may take 1-2 minutes for the site to go live after enabling Pages.
+
+### Add API Keys for GitHub Pages
+
+After enabling Pages, you need to add your API keys:
+
+1. Go to your repository: https://github.com/randylitton21/Fanlytical
+2. Click on `api-config.example.js`
+3. Click "Edit" (pencil icon)
+4. Copy the content
+5. Click "Add file" → "Create new file"
+6. Name it `api-config.js`
+7. Paste the content and replace placeholders with your actual keys
+8. Click "Commit new file"
+
+Your app will work immediately!
 
 ### Manual Deployment
 

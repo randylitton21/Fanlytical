@@ -29,11 +29,22 @@ function hideLoading() {
 }
 
 function addToResults(content, isQuery = false) {
+    console.log('addToResults called:', { content: content.substring(0, 50) + '...', isQuery });
+    
     const container = document.getElementById('resultsContainer');
+    
+    if (!container) {
+        console.error('resultsContainer not found!');
+        alert('Error: Results container not found. Please check the HTML structure.');
+        return;
+    }
+    
+    console.log('Container found:', container);
     
     // Remove welcome message if present
     const welcomeMsg = container.querySelector('.welcome-message');
     if (welcomeMsg) {
+        console.log('Removing welcome message');
         welcomeMsg.remove();
     }
     
@@ -52,8 +63,11 @@ function addToResults(content, isQuery = false) {
         messageDiv.innerHTML = `<div class="message-header">🤖 NFL Agent Response ${saveBtn}</div><div class="message-content">${formatResponse(content)}</div>`;
     }
     
+    console.log('Appending message to container');
     container.appendChild(messageDiv);
     container.scrollTop = container.scrollHeight;
+    
+    console.log('Message added successfully. Container now has', container.children.length, 'children');
 }
 
 function saveCurrentReport(messageId) {
@@ -66,6 +80,24 @@ function saveCurrentReport(messageId) {
 
 // Make function globally available
 window.saveCurrentReport = saveCurrentReport;
+
+// Test function to verify container is working
+window.testResultsContainer = function() {
+    console.log('Testing results container...');
+    const container = document.getElementById('resultsContainer');
+    if (container) {
+        console.log('✅ Container found!');
+        console.log('Container element:', container);
+        console.log('Container children:', container.children.length);
+        console.log('Container innerHTML length:', container.innerHTML.length);
+        addToResults('TEST MESSAGE: If you see this, the container is working!', false);
+        return true;
+    } else {
+        console.error('❌ Container NOT found!');
+        alert('ERROR: resultsContainer element not found in the page!');
+        return false;
+    }
+};
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -187,10 +219,27 @@ async function loadFromGitHub() {
 // ============================================================================
 
 async function executeQuery(query) {
-    if (!API_KEYS.openai) {
-        addToResults('Error: OpenAI API key not configured. Please check api-config.js', false);
+    // Check if API_KEYS is loaded
+    if (typeof API_KEYS === 'undefined' || !API_KEYS) {
+        console.error('API_KEYS not defined. Check if api-config.js is loaded.');
+        addToResults('Error: API configuration not loaded. Please ensure api-config.js exists and contains your API keys.', false);
+        hideLoading();
         return;
     }
+    
+    if (!API_KEYS.openai || API_KEYS.openai === 'YOUR_OPENAI_API_KEY_HERE') {
+        console.error('OpenAI API key not configured:', API_KEYS.openai);
+        addToResults('Error: OpenAI API key not configured. Please check api-config.js and add your OpenAI API key.', false);
+        hideLoading();
+        return;
+    }
+    
+    console.log('Executing query:', query);
+    console.log('API Keys loaded:', { 
+        hasOpenAI: !!API_KEYS.openai, 
+        hasTavily: !!API_KEYS.tavily,
+        hasGithub: !!API_KEYS.github 
+    });
     
     showLoading();
     
@@ -249,7 +298,17 @@ Always provide accurate, helpful information. If you don't have current data, sa
         }
         
         const data = await response.json();
+        console.log('OpenAI API response received:', data);
+        
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            throw new Error('Invalid response format from OpenAI API');
+        }
+        
         const assistantMessage = data.choices[0].message.content;
+        
+        if (!assistantMessage) {
+            throw new Error('Empty response from OpenAI API');
+        }
         
         // Add to conversation history
         appState.conversationHistory.push(
@@ -263,8 +322,24 @@ Always provide accurate, helpful information. If you don't have current data, sa
         }
         
         // Display results
+        console.log('Displaying results...');
+        console.log('Query:', query);
+        console.log('Response length:', assistantMessage.length);
+        console.log('Response preview:', assistantMessage.substring(0, 100) + '...');
+        
+        // Verify container exists before adding
+        const container = document.getElementById('resultsContainer');
+        if (!container) {
+            console.error('ERROR: resultsContainer not found when trying to display results!');
+            alert('Error: Results container not found. The page may not have loaded correctly.');
+            return;
+        }
+        
+        console.log('Container found, adding query...');
         addToResults(query, true);
+        console.log('Query added, adding response...');
         addToResults(assistantMessage, false);
+        console.log('Both query and response added successfully');
         
         // Auto-save to GitHub
         if (appState.githubToken) {
@@ -276,7 +351,26 @@ Always provide accurate, helpful information. If you don't have current data, sa
         
     } catch (error) {
         console.error('Query error:', error);
-        addToResults(`Error: ${error.message}`, false);
+        console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
+        
+        let errorMessage = `Error: ${error.message}`;
+        
+        // Provide helpful error messages
+        if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+            errorMessage = 'Authentication error: Invalid OpenAI API key. Please check your API key in api-config.js';
+        } else if (error.message.includes('429')) {
+            errorMessage = 'Rate limit exceeded: You have exceeded your OpenAI API rate limit. Please try again later.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage = 'Network error: Could not connect to OpenAI API. Please check your internet connection.';
+        } else if (error.message.includes('CORS')) {
+            errorMessage = 'CORS error: The browser blocked the request. This may be a browser security issue.';
+        }
+        
+        addToResults(errorMessage, false);
     } finally {
         hideLoading();
     }
@@ -899,10 +993,38 @@ function exportData(format) {
 // ============================================================================
 
 async function initializeApp() {
-    // Load API keys
-    if (typeof API_KEYS !== 'undefined') {
+    // Check if API keys are loaded
+    console.log('Initializing app...');
+    console.log('API_KEYS defined:', typeof API_KEYS !== 'undefined');
+    
+    // Verify results container exists
+    const container = document.getElementById('resultsContainer');
+    if (!container) {
+        console.error('CRITICAL ERROR: resultsContainer not found during initialization!');
+        alert('CRITICAL ERROR: Results container not found. The page may not have loaded correctly. Please refresh the page.');
+        return;
+    }
+    console.log('✅ Results container found during initialization');
+    
+    if (typeof API_KEYS !== 'undefined' && API_KEYS) {
         appState.githubToken = API_KEYS.github;
-        console.log('API keys loaded');
+        console.log('API keys loaded successfully');
+        console.log('OpenAI key present:', !!API_KEYS.openai && API_KEYS.openai !== 'YOUR_OPENAI_API_KEY_HERE');
+        console.log('GitHub token present:', !!API_KEYS.github);
+    } else {
+        console.error('API_KEYS not loaded! Make sure api-config.js exists and is loaded before script.js');
+        // Show error in UI
+        const container = document.getElementById('resultsContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="welcome-message">
+                    <h2>⚠️ Configuration Error</h2>
+                    <p style="color: red;"><strong>API keys not loaded!</strong></p>
+                    <p>Please ensure <code>api-config.js</code> exists and contains your API keys.</p>
+                    <p>If you're using GitHub Pages, you need to add the api-config.js file with your keys.</p>
+                </div>
+            `;
+        }
     }
     
     // Load conversation history from GitHub
@@ -940,18 +1062,37 @@ async function initializeApp() {
     }
     
     // Setup event listeners
-    document.getElementById('sendBtn').addEventListener('click', () => {
-        const query = document.getElementById('queryInput').value.trim();
+    const sendBtn = document.getElementById('sendBtn');
+    const queryInput = document.getElementById('queryInput');
+    
+    if (!sendBtn) {
+        console.error('Send button not found!');
+        return;
+    }
+    
+    if (!queryInput) {
+        console.error('Query input not found!');
+        return;
+    }
+    
+    console.log('Setting up event listeners...');
+    
+    sendBtn.addEventListener('click', () => {
+        const query = queryInput.value.trim();
+        console.log('Send button clicked, query:', query);
         if (query) {
             executeQuery(query);
-            document.getElementById('queryInput').value = '';
+            queryInput.value = '';
+        } else {
+            console.warn('Empty query, not executing');
         }
     });
     
-    document.getElementById('queryInput').addEventListener('keydown', (e) => {
+    queryInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            document.getElementById('sendBtn').click();
+            console.log('Enter key pressed, triggering send');
+            sendBtn.click();
         }
     });
     
@@ -1001,8 +1142,19 @@ async function initializeApp() {
 }
 
 // Start the app when DOM is ready
+console.log('Script.js loaded, DOM ready state:', document.readyState);
+console.log('API_KEYS available:', typeof API_KEYS !== 'undefined');
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
+    console.log('Waiting for DOM to load...');
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing app...');
+        initializeApp();
+    });
 } else {
-    initializeApp();
+    console.log('DOM already loaded, initializing app immediately...');
+    // Small delay to ensure all scripts are loaded
+    setTimeout(() => {
+        initializeApp();
+    }, 100);
 }

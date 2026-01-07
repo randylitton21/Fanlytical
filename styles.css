@@ -124,6 +124,8 @@ body {
     border-radius: 12px;
     padding: 25px;
     overflow-y: auto;
+    min-height: 200px; /* Ensure container has minimum height */
+    display: block; /* Ensure it's visible */
     max-height: calc(100vh - 350px);
 }
 
