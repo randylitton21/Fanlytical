@@ -994,8 +994,9 @@ function exportData(format) {
 
 async function initializeApp() {
     // Check if API keys are loaded
-    console.log('Initializing app...');
+    console.log('=== Initializing App ===');
     console.log('API_KEYS defined:', typeof API_KEYS !== 'undefined');
+    console.log('API_KEYS value:', typeof API_KEYS !== 'undefined' ? API_KEYS : 'undefined');
     
     // Verify results container exists
     const container = document.getElementById('resultsContainer');
@@ -1006,26 +1007,71 @@ async function initializeApp() {
     }
     console.log('✅ Results container found during initialization');
     
-    if (typeof API_KEYS !== 'undefined' && API_KEYS) {
-        appState.githubToken = API_KEYS.github;
-        console.log('API keys loaded successfully');
-        console.log('OpenAI key present:', !!API_KEYS.openai && API_KEYS.openai !== 'YOUR_OPENAI_API_KEY_HERE');
-        console.log('GitHub token present:', !!API_KEYS.github);
-    } else {
-        console.error('API_KEYS not loaded! Make sure api-config.js exists and is loaded before script.js');
-        // Show error in UI
+    // Check for API keys with more detailed logging
+    if (typeof API_KEYS === 'undefined') {
+        console.error('❌ API_KEYS is undefined!');
+        console.error('Possible causes:');
+        console.error('1. api-config.js file is missing');
+        console.error('2. api-config.js is not loading (check Network tab)');
+        console.error('3. Script loading order is wrong');
+        console.error('4. CORS issue preventing file load');
+        
+        // Show detailed error in UI
         const container = document.getElementById('resultsContainer');
         if (container) {
             container.innerHTML = `
                 <div class="welcome-message">
                     <h2>⚠️ Configuration Error</h2>
                     <p style="color: red;"><strong>API keys not loaded!</strong></p>
-                    <p>Please ensure <code>api-config.js</code> exists and contains your API keys.</p>
-                    <p>If you're using GitHub Pages, you need to add the api-config.js file with your keys.</p>
+                    <p><strong>Diagnosis:</strong></p>
+                    <ul style="text-align: left; display: inline-block;">
+                        <li>Check browser console (F12) for detailed errors</li>
+                        <li>Verify <code>api-config.js</code> exists in the same folder as <code>index.html</code></li>
+                        <li>Check Network tab to see if <code>api-config.js</code> loaded (should show 200 status)</li>
+                        <li>If using GitHub Pages, add <code>api-config.js</code> to the repository</li>
+                    </ul>
+                    <p><strong>Quick Test:</strong> Open console (F12) and type: <code>console.log(API_KEYS)</code></p>
+                    <p>If you see <code>undefined</code>, the file is not loading.</p>
                 </div>
             `;
         }
+        return;
     }
+    
+    if (!API_KEYS || typeof API_KEYS !== 'object') {
+        console.error('❌ API_KEYS is not an object:', API_KEYS);
+        const container = document.getElementById('resultsContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="welcome-message">
+                    <h2>⚠️ Configuration Error</h2>
+                    <p style="color: red;"><strong>API_KEYS is not properly defined!</strong></p>
+                    <p>Check that api-config.js exports API_KEYS correctly.</p>
+                </div>
+            `;
+        }
+        return;
+    }
+    
+    // Check individual keys
+    const hasOpenAI = API_KEYS.openai && API_KEYS.openai !== 'YOUR_OPENAI_API_KEY_HERE';
+    const hasTavily = API_KEYS.tavily && API_KEYS.tavily !== 'YOUR_TAVILY_API_KEY_HERE';
+    const hasGithub = API_KEYS.github && API_KEYS.github !== 'YOUR_GITHUB_TOKEN_HERE';
+    
+    console.log('API Keys Status:', {
+        hasOpenAI: hasOpenAI,
+        hasTavily: hasTavily,
+        hasGithub: hasGithub,
+        openaiLength: API_KEYS.openai ? API_KEYS.openai.length : 0,
+        githubLength: API_KEYS.github ? API_KEYS.github.length : 0
+    });
+    
+    if (!hasOpenAI) {
+        console.warn('⚠️ OpenAI key is missing or placeholder');
+    }
+    
+    appState.githubToken = API_KEYS.github;
+    console.log('✅ API keys loaded successfully');
     
     // Load conversation history from GitHub
     if (appState.githubToken) {
@@ -1145,16 +1191,35 @@ async function initializeApp() {
 console.log('Script.js loaded, DOM ready state:', document.readyState);
 console.log('API_KEYS available:', typeof API_KEYS !== 'undefined');
 
+// Check if api-config.js loaded
+if (typeof API_KEYS === 'undefined') {
+    console.error('❌ API_KEYS is undefined!');
+    console.error('Check if api-config.js is loaded before script.js');
+    console.error('Script loading order should be:');
+    console.error('1. api-config.js');
+    console.error('2. config.js');
+    console.error('3. script.js');
+} else {
+    console.log('✅ API_KEYS loaded:', {
+        hasOpenAI: !!API_KEYS.openai,
+        hasTavily: !!API_KEYS.tavily,
+        hasGithub: !!API_KEYS.github
+    });
+}
+
 if (document.readyState === 'loading') {
     console.log('Waiting for DOM to load...');
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOM loaded, initializing app...');
-        initializeApp();
+        // Give api-config.js more time to load
+        setTimeout(() => {
+            initializeApp();
+        }, 200);
     });
 } else {
     console.log('DOM already loaded, initializing app immediately...');
     // Small delay to ensure all scripts are loaded
     setTimeout(() => {
         initializeApp();
-    }, 100);
+    }, 200);
 }

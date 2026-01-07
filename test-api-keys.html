@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Keys Test - NFL Agent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #ccc;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 API Keys Diagnostic Test</h1>
+    <p>This page will test if your API keys are loading correctly.</p>
+    
+    <div id="results"></div>
+    
+    <script src="api-config.js"></script>
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(message, type = 'success') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        // Test 1: Check if file loaded
+        addResult('<h3>Test 1: File Loading</h3>', 'success');
+        
+        if (typeof API_KEYS === 'undefined') {
+            addResult('❌ <strong>FAILED:</strong> API_KEYS is undefined. The api-config.js file is not loading.', 'error');
+            addResult('<strong>Possible causes:</strong><ul><li>File does not exist</li><li>CORS issue</li><li>File path is wrong</li><li>JavaScript error in api-config.js</li></ul>', 'warning');
+        } else {
+            addResult('✅ <strong>PASSED:</strong> API_KEYS is defined.', 'success');
+        }
+        
+        // Test 2: Check structure
+        if (typeof API_KEYS !== 'undefined') {
+            addResult('<h3>Test 2: API Keys Structure</h3>', 'success');
+            
+            if (!API_KEYS || typeof API_KEYS !== 'object') {
+                addResult('❌ <strong>FAILED:</strong> API_KEYS is not an object.', 'error');
+            } else {
+                addResult('✅ <strong>PASSED:</strong> API_KEYS is an object.', 'success');
+            }
+            
+            // Test 3: Check individual keys
+            addResult('<h3>Test 3: Individual Keys</h3>', 'success');
+            
+            const keys = ['openai', 'tavily', 'github'];
+            keys.forEach(key => {
+                if (!API_KEYS[key]) {
+                    addResult(`❌ <strong>${key}:</strong> Missing`, 'error');
+                } else if (API_KEYS[key].includes('YOUR_') || API_KEYS[key].includes('HERE')) {
+                    addResult(`⚠️ <strong>${key}:</strong> Contains placeholder value`, 'warning');
+                } else {
+                    const length = API_KEYS[key].length;
+                    const preview = API_KEYS[key].substring(0, 10) + '...';
+                    addResult(`✅ <strong>${key}:</strong> Present (${length} chars, starts with: ${preview})`, 'success');
+                }
+            });
+            
+            // Test 4: Show full structure (masked)
+            addResult('<h3>Test 4: Full Structure (Masked)</h3>', 'success');
+            const masked = {
+                openai: API_KEYS.openai ? API_KEYS.openai.substring(0, 10) + '...' + API_KEYS.openai.substring(API_KEYS.openai.length - 5) : 'missing',
+                tavily: API_KEYS.tavily ? API_KEYS.tavily.substring(0, 10) + '...' + API_KEYS.tavily.substring(API_KEYS.tavily.length - 5) : 'missing',
+                github: API_KEYS.github ? API_KEYS.github.substring(0, 10) + '...' + API_KEYS.github.substring(API_KEYS.github.length - 5) : 'missing'
+            };
+            addResult('<pre>' + JSON.stringify(masked, null, 2) + '</pre>', 'success');
+        }
+        
+        // Test 5: Check window object
+        addResult('<h3>Test 5: Window Object</h3>', 'success');
+        if (typeof window !== 'undefined' && window.API_KEYS) {
+            addResult('✅ <strong>PASSED:</strong> API_KEYS is available on window object.', 'success');
+        } else {
+            addResult('⚠️ <strong>WARNING:</strong> API_KEYS not found on window object (may still work).', 'warning');
+        }
+        
+        // Summary
+        addResult('<h3>📋 Summary</h3>', 'success');
+        if (typeof API_KEYS !== 'undefined' && API_KEYS.openai && !API_KEYS.openai.includes('YOUR_')) {
+            addResult('✅ <strong>All tests passed!</strong> Your API keys are loading correctly.', 'success');
+        } else {
+            addResult('❌ <strong>Some tests failed.</strong> Check the errors above and fix them.', 'error');
+        }
+    </script>
+</body>
+</html>
+
