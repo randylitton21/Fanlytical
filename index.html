@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Analytics Agent</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Main App Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>🏈 NFL Analytics Agent</h1>
+                <div class="header-actions">
+                    <button id="savedReportsBtn" class="btn btn-secondary">📁 Saved Reports</button>
+                    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                    <button id="saveBtn" class="btn btn-secondary">Save History</button>
+                    <button id="exportBtn" class="btn btn-secondary">Export</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Query Input Section -->
+            <div class="query-section">
+                <div class="query-input-container">
+                    <textarea 
+                        id="queryInput" 
+                        placeholder="Ask me anything about the NFL...&#10;Examples:&#10;• Get Patrick Mahomes' stats&#10;• Compare Chiefs vs Bills&#10;• What are the injury reports for the Seahawks?&#10;• Show me this week's betting odds"
+                        rows="4"
+                    ></textarea>
+                    <button id="sendBtn" class="btn btn-primary btn-large">Send Query</button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <div id="resultsContainer" class="results-container">
+                    <div class="welcome-message">
+                        <h2>Welcome to NFL Analytics Agent</h2>
+                        <p>Ask me anything about the NFL - player stats, team comparisons, injury reports, betting odds, game schedules, and more!</p>
+                        <div class="example-queries">
+                            <strong>Try these examples:</strong>
+                            <ul>
+                                <li>"Get Patrick Mahomes' stats from NFL.com"</li>
+                                <li>"Compare Chiefs vs Bills team stats"</li>
+                                <li>"What are the injury reports for the Seahawks week 13?"</li>
+                                <li>"Show me this week's NFL betting odds"</li>
+                                <li>"What time do the Broncos play this week?"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-indicator hidden">
+                <div class="spinner"></div>
+                <p>Processing your query...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Export Conversation</h2>
+            <div class="export-options">
+                <button class="export-option" data-format="txt">📄 Text File (.txt)</button>
+                <button class="export-option" data-format="json">📋 JSON File (.json)</button>
+            </div>
+            <button class="btn btn-secondary" onclick="closeExportModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Save Report Modal -->
+    <div id="saveReportModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Save Report</h2>
+            <form id="saveReportForm">
+                <div class="form-group">
+                    <label for="reportTitle">Report Title</label>
+                    <input type="text" id="reportTitle" placeholder="e.g., Seahawks Injury Report Week 13" required>
+                </div>
+                <div class="form-group">
+                    <label for="reportType">Report Type</label>
+                    <select id="reportType" required>
+                        <option value="injury">Injury Report</option>
+                        <option value="stats">Player/Team Stats</option>
+                        <option value="betting">Betting Odds</option>
+                        <option value="schedule">Game Schedule</option>
+                        <option value="analysis">Analysis</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportTeam">Team (Optional)</label>
+                    <input type="text" id="reportTeam" placeholder="e.g., Seahawks, Chiefs">
+                </div>
+                <div class="form-group">
+                    <label for="reportWeek">Week (Optional)</label>
+                    <input type="text" id="reportWeek" placeholder="e.g., 13">
+                </div>
+                <div class="form-group">
+                    <label for="reportSeason">Season/Year (Optional)</label>
+                    <input type="text" id="reportSeason" placeholder="e.g., 2024">
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">💾 Save to Device</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeSaveReportModal()">Cancel</button>
+                </div>
+                <p class="info-text" id="saveReportInfo" style="margin-top: 15px; font-size: 12px;">
+                    💡 You'll be able to choose where to save the file on your device.
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Saved Reports Modal -->
+    <div id="savedReportsModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 800px;">
+            <h2>📁 Saved Reports</h2>
+            <div id="savedReportsList" class="saved-reports-list">
+                <p class="info-text">Loading saved reports...</p>
+            </div>
+            <button class="btn btn-secondary" onclick="closeSavedReportsModal()">Close</button>
+        </div>
+    </div>
+
+    <script src="api-config.js"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

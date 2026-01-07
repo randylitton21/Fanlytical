@@ -1,0 +1,23 @@
+{
+  "name": "nfl-analytics-agent-web",
+  "version": "1.0.0",
+  "description": "NFL Analytics Agent - Web Application with GitHub Storage",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8080 -o",
+    "deploy": "git add . && git commit -m 'Update NFL Agent Web App' && git push"
+  },
+  "keywords": [
+    "nfl",
+    "analytics",
+    "web-app",
+    "github",
+    "encryption"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
+
